@@ -31,7 +31,7 @@ MongoClient.connect("mongodb://localhost:27017/TodoApp", (err,client) => {
     console.log("Connected to MongoDB Server");
     const db = client.db("TodoApp"); // Name of database
 
-    db.collection("Todos").insertOne({
+    db.collection("Users").insertOne({
         name: "Harrison",
         age: 24,
         location: "Washington D.C."
