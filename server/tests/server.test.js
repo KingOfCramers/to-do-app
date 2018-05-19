@@ -11,7 +11,7 @@ beforeEach((done) => {
 
 describe("POST /todos", () => {
     it("Should create a new todo", (done) => {
-        var text = "Some text";
+        var text = "This is a test";
 
         // Using supertest...
         supertest(app)
