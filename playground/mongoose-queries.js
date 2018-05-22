@@ -7,6 +7,9 @@ var userid = '5b04936ebceab4eae19614c1';
 var id = '5b00abd0c112d97f09cf7565';
 var fakeId = '5b00abdac110d97f09cf7565';
 var invalidId = "a8pawunidfja";
+
+/// VALID SEARCHES ///
+
 /*
 // Find returns all of the matches in an array.
 Todo.find({
@@ -26,7 +29,9 @@ Todo.findOne({
 Todo.findById(id).then((todo) => console.log(todo));
 
 */
-//// IF THE FIND DOESN'T WORK....
+
+/// INVALID SEARCHES ///
+
 /*
 Todo.find({
     _id: fakeId
@@ -53,8 +58,9 @@ Todo.findById(invalidId).then((todos) => {
     console.log('findByIdInvalid: ', todos);
 }).catch((e) => console.log('findByIdInvalid: ', e)); // null
 
-}*/
+}
 
+// Full example
 if(!ObjectID.isValid(userid)){
     console.log("Invalid ID.")
 } else {
@@ -66,5 +72,4 @@ if(!ObjectID.isValid(userid)){
     }).catch((e) => {
         console.log("Error: ", e)
     })
-}
-
+} */
