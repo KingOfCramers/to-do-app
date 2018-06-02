@@ -1,13 +1,15 @@
 const expect = require("expect");
 const supertest = require("supertest");
-
+const { ObjectID } = require("mongodb");
 const { app } = require("../server.js");
 const { Todo } = require("../models/todo");
 
 // Dummy data of todos.
 const todos = [{
+    _id: new ObjectID(),
     text: "First test todo"
 }, {
+    _id: new ObjectID(),
     text: "Second test todo"
 }]
 
@@ -74,3 +76,32 @@ describe("GET /todos", () => {
             .end(done);
     })
 })
+
+describe("GET /todos", () => {
+    it("Should GET a single todo doc", (done) => {
+        supertest(app)
+            .get(`/todos/${todos[0]._id.toHexString()}`) // Must convert object ID to string.
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(todos[0].text); // Checks todo property against our fake "database" from above.
+            })
+            .end(done);
+    });
+
+    it("Should return a 404 if [valid] todo not found", (done) => {
+        const fakeID = new ObjectID();
+        supertest(app)
+            .get(`/todos/${fakeID.toHexString()}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it("Should return a 404 for a non-valid ID", (done) => {
+        const invalidId = "thisisaninvalididz"
+        supertest(app)
+            .get(`/todos/${invalidId}`)
+            .expect(404)
+            .end(done);
+    });
+
+});

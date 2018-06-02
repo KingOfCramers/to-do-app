@@ -48,7 +48,7 @@ app.get("/todos/:todo", (req,res) => {
         }
         res.status(200).send({
             todo: todo
-        });
+        }); // Sets up todo property on response object.
     }).catch((e) => { // Fires w/ server interruption.
         res.status(400).send();
         console.log(e);
