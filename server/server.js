@@ -1,12 +1,14 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const _ = require("lodash"); // Working with arrays, objects, strings, etc.
-const { mongoose } = require("./db/mongoose");
 const { ObjectID } = require("mongodb");
 const { User } = require("./models/user");
 const { Todo } = require("./models/todo");
 
-const port = process.env.PORT || 3000;
+const config = require("./config/config"); // Get current environment.
+const { mongoose } = require("./db/mongoose"); // Connect to mongoose database
+
+const port = process.env.PORT;
 const app = express();
 
 app.use(bodyParser.json()); // Middlewear. Sets our headers to JSON.
