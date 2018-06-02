@@ -5,7 +5,7 @@ const { ObjectID } = require("mongodb");
 const { User } = require("./models/user");
 const { Todo } = require("./models/todo");
 
-const port = 3000;
+const port = process.env.PORT || 3000;
 const app = express();
 
 app.use(bodyParser.json()); // Middlewear. Sets our headers to JSON.
