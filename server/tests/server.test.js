@@ -10,7 +10,9 @@ const todos = [{
     text: "First test todo"
 }, {
     _id: new ObjectID(),
-    text: "Second test todo"
+    text: "Second test todo",
+    completed: true,
+    completedAt: 333
 }]
 
 // This function runs before every test case.
@@ -44,7 +46,6 @@ describe("POST /todos", () => {
                 }).catch((e) => done(e));
             }) // Instead of passing done, we use a function
     });
-
     it("Should not POST todo with invalid body data", (done) => {
         supertest(app)
             .post("/todos")
@@ -77,7 +78,21 @@ describe("GET /todos", () => {
     })
 })
 
-describe("GET /todos", () => {
+describe("GET /todos/:id", () => {
+    it("Should return a 404 for a non-valid ID", (done) => {
+        const invalidId = "thisisaninvalididz"
+        supertest(app)
+            .get(`/todos/${invalidId}`)
+            .expect(404)
+            .end(done);
+    });
+    it("Should return a 404 if [valid] todo not found", (done) => {
+        const fakeID = new ObjectID();
+        supertest(app)
+            .get(`/todos/${fakeID.toHexString()}`)
+            .expect(404)
+            .end(done);
+    });
     it("Should GET a single todo doc", (done) => {
         supertest(app)
             .get(`/todos/${todos[0]._id.toHexString()}`) // Must convert object ID to string.
@@ -87,25 +102,23 @@ describe("GET /todos", () => {
             })
             .end(done);
     });
-
-    it("Should return a 404 if [valid] todo not found", (done) => {
-        const fakeID = new ObjectID();
-        supertest(app)
-            .get(`/todos/${fakeID.toHexString()}`)
-            .expect(404)
-            .end(done);
-    });
-
-    it("Should return a 404 for a non-valid ID", (done) => {
-        const invalidId = "thisisaninvalididz"
-        supertest(app)
-            .get(`/todos/${invalidId}`)
-            .expect(404)
-            .end(done);
-    });
 });
 
 describe("DELETE /todos/:id", () => {
+    it("Should return a 404 for an invalid objectID", (done) => {
+        const invalidId = "thisisaninvalididz"
+        supertest(app)
+            .delete(`/todos/${invalidId}`)
+            .expect(404)
+            .end(done);
+    });
+    it("Should return a 404 if the [valid] todo is not found", (done) => {
+        const fakeID = new ObjectID();
+        supertest(app)
+            .delete(`/todos/${fakeID.toHexString()}`)
+            .expect(404)
+            .end(done);
+    });
     it("Should remove a todo using the objectID", (done) => {
         var hexId = todos[1]._id.toHexString();
         supertest(app)
@@ -124,19 +137,54 @@ describe("DELETE /todos/:id", () => {
                 }).catch((e) => done(e));
             });
     });
+});
 
-    it("Should return a 404 if the [valid] todo is not found", (done) => {
-        const fakeID = new ObjectID();
-        supertest(app)
-            .delete(`/todos/${fakeID.toHexString()}`)
-            .expect(404)
-            .end(done);
-    });
+describe("PATCH /todos/:id", () => {
     it("Should return a 404 for an invalid objectID", (done) => {
         const invalidId = "thisisaninvalididz"
         supertest(app)
-            .delete(`/todos/${invalidId}`)
+            .patch(`/todos/${invalidId}`)
             .expect(404)
             .end(done);
     });
+   it("Should return a 404 if the [valid] todo is not found", (done) => {
+        const fakeID = new ObjectID();
+        supertest(app)
+            .patch(`/todos/${fakeID.toHexString()}`)
+            .expect(404)
+            .end(done);
+    });
+   it("Should update the todo", (done) => {
+        var hexId = todos[1]._id.toHexString();
+        var newText = "New Text here"
+        supertest(app)
+            .patch(`/todos/${hexId}`)
+            .send({
+                completed: true,
+                text: newText
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo._id).toBe(hexId);
+                expect(res.body.todo.text).toBe(newText);
+                expect(res.body.todo.completed).toBe(true);
+                expect(res.body.todo.completedAt).toExist().toBeA('number');
+            })
+            .end(done);
+    });
+    it("Should clear completedAt when todo is set to incomplete", (done) => {
+        var hexId = todos[1]._id.toHexString();
+        supertest(app)
+            .patch(`/todos/${hexId}`)
+            .send({
+                completed: false
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo._id).toBe(hexId);
+                expect(res.body.todo.completed).toBe(false);
+                expect(res.body.todo.completedAt).toNotExist();
+            })
+            .end(done)
+    })
 });
