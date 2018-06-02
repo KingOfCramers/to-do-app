@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const _ = require("lodash"); // Working with arrays, objects, strings, etc.
 const { mongoose } = require("./db/mongoose");
 const { ObjectID } = require("mongodb");
 const { User } = require("./models/user");
@@ -70,6 +71,30 @@ app.delete("/todos/:todo", (req,res) => {
     });
 });
 
+app.patch("/todos/:id", (req,res) => {
+    var id = req.params.id;
+    var body = _.pick(req.body, ['text', 'completed']); // Creates an object using the properties passed into the array. We don't want user to be able to update whatever they want.
+    if(!ObjectID.isValid(id)){
+        return res.status(404).send();
+    }
+
+    if(_.isBoolean(body.completed) && body.completed) { // if a boolean and true
+        body.completedAt = new Date().getTime(); // Returns javascript timestamp.
+    } else {
+        body.completed = false;
+        body.completedAt = null;
+    }
+    // We've already generated the body object. New, true returns the new todo.
+    Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then((todo) => {
+        if(!todo){
+            return res.status(404).send();
+        }
+        res.send({todo})
+    }).catch((e) => {
+        res.status(400).send();
+    })
+
+});
 
 app.listen(port, () => {
     console.log(`Started on port ${port}`);
