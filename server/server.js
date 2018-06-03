@@ -98,6 +98,22 @@ app.patch("/todos/:id", (req,res) => {
 
 });
 
+//// USERS
+
+app.post("/users", (req,res) => {
+    var body = _.pick(req.body, ['email', 'password']); // Creates an object using the properties passed into the array.
+
+    var user = new User(body); // Create a new instance using the User model.
+
+    user.save().then(() => {
+        return user.generateAuthToken(); // Call method (deined in user.js)
+    }).then((token) => {
+        res.header('x-auth', token).send(user);
+    }).catch((e) => {
+        res.status(400).send(e);
+    });
+});
+
 app.listen(port, () => {
     console.log(`Started on port ${port}`);
 });
