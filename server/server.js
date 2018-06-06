@@ -106,11 +106,27 @@ app.post("/users", (req,res) => {
     var user = new User(body); // Create a new instance using the User model.
 
     user.save().then(() => {
-        return user.generateAuthToken(); // Call method (deined in user.js)
+        return user.generateAuthToken(); // Call instance method
     }).then((token) => {
-        res.header('x-auth', token).send(user);
+        res.header('x-auth', token).send(user); // Set our headers
     }).catch((e) => {
         res.status(400).send(e);
+    });
+});
+
+// Find associated user w/ token
+app.get("/users/me", (req,res) => {
+    var token = req.header("x-auth"); // Get our token from our header (similar to res.header, where we set our header). This is from logged in user, it's an object.
+
+    User.findByToken(token).then((user) => { // Model method, we define in our user.js file
+        if(!user) { // Will return null
+            return Promise.reject(); // Will cause catch block to fire.
+        }
+
+        res.send(user);
+
+    }).catch((e) => { // Catches rejected promise
+        res.status(401).send();
     });
 });
 
