@@ -8,6 +8,8 @@ const { Todo } = require("./models/todo");
 const config = require("./config/config"); // Get current environment.
 const { mongoose } = require("./db/mongoose"); // Connect to mongoose database
 
+const { authenticate } = require("./middleware/authenticate");
+
 const port = process.env.PORT;
 const app = express();
 
@@ -115,19 +117,8 @@ app.post("/users", (req,res) => {
 });
 
 // Find associated user w/ token
-app.get("/users/me", (req,res) => {
-    var token = req.header("x-auth"); // Get our token from our header (similar to res.header, where we set our header). This is from logged in user, it's an object.
-
-    User.findByToken(token).then((user) => { // Model method, we define in our user.js file
-        if(!user) { // Will return null
-            return Promise.reject(); // Will cause catch block to fire.
-        }
-
-        res.send(user);
-
-    }).catch((e) => { // Catches rejected promise
-        res.status(401).send();
-    });
+app.get("/users/me", authenticate, (req,res) => { // From middlewear folder.
+    res.send(req.user);
 });
 
 app.listen(port, () => {
