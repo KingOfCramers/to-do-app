@@ -5,6 +5,7 @@ Model is an object that gives you easy access to a named collection, allowing yo
 */
 
 const _ = require("lodash");
+const bcrypt = require("bcryptjs");
 const validator = require("validator");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
@@ -79,6 +80,22 @@ UserSchema.statics.findByToken = function (token) {
         'tokens.access' : 'auth'
     });
 } // Statics creates model methods, NOT instance methods
+
+
+UserSchema.pre('save', function(next) {
+    var user = this;
+
+    if(user.isModified('password')) { // the .isModified method checks if a property has been changed. The middleware will run everytime anything is changed (like email, for example) but this will only run when the password property has been changed.
+        bcrypt.genSalt(10,(err,salt) => {
+            bcrypt.hash(user.password,salt,(err,hash) => {
+                user.password = hash;
+                next();
+            });
+        });
+    } else {
+        next(); // Move on to route.
+    }
+})
 
 var User = mongoose.model("User", UserSchema);
 
