@@ -3,10 +3,11 @@ const supertest = require("supertest");
 const { ObjectID } = require("mongodb");
 const { app } = require("../server.js");
 const { Todo } = require("../models/todo");
-const { todos, populate } = require("./seed/seed");
+const { users, todos, populate, populateUsers } = require("./seed/seed");
 
 // This function runs before every test case.
 beforeEach(populate);
+beforeEach(populateUsers);
 
 describe("POST /todos", () => {
     it("Should POST a new todo", (done) => {
