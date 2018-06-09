@@ -4,6 +4,7 @@ const { ObjectID } = require("mongodb");
 const { app } = require("../server.js");
 const { Todo } = require("../models/todo");
 const { users, todos, populate, populateUsers } = require("./seed/seed");
+const { User } = require("../models/user");
 
 // This function runs before every test case.
 beforeEach(populate);
@@ -173,5 +174,81 @@ describe("PATCH /todos/:id", () => {
                 expect(res.body.todo.completedAt).toNotExist();
             })
             .end(done)
-    })
+    });
 });
+
+describe("GET /users/me", function() {
+    it("Should return user if authenticated", (done) => {
+        supertest(app)
+            .get("/users/me")
+            .set("x-auth", users[0].tokens[0].token)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body._id).toBe(users[0]._id.toHexString());
+                expect(res.body.email).toBe(users[0].email);
+            })
+            .end(done);
+    });
+    it("Should return a 401 if not authenticated", (done) => {
+        supertest(app)
+            .get("/users/me")
+            .expect(401)
+            .expect((res) => {
+                expect(res.body).toEqual({});
+            })
+            .end(done)
+    });
+});
+
+describe("POST /users", () => {
+    it("Should create a user", (done) => {
+        var email = "uniqueemail@example.com"
+        var password = "9webipasd"
+        supertest(app)
+            .post("/users")
+            .send({
+                email,
+                password
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toExist();
+                expect(res.body._id).toExist();
+                expect(res.body.email).toBe(email);
+            })
+            .end((err) => {
+                if(err){
+                    return done(err);
+                }
+                User.findOne({email}).then((user) => {
+                    expect(user).toExist();
+                    expect(user.password).toNotBe(password); // Hashed?
+                    done();
+                });
+            });
+    });
+
+    it("Should return validation errors", (done) => {
+        var email = "notvalid";
+        var password = "";
+        supertest(app)
+            .post("/users")
+            .send({
+                email: email,
+                password: password
+            })
+            .expect(400) // Doesn't send anything back becuase our User model breaks it. Catch block of our "/users" route.
+            .end(done);
+    });
+
+    it("Should not create duplicate email/user", (done) => {
+        supertest(app)
+            .post("/users")
+            .send({
+                email: users[0].email,
+                password: "sdohfsdfa"
+            })
+            .expect(400)
+            .end(done);
+    });
+})
