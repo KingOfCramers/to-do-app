@@ -81,10 +81,22 @@ UserSchema.statics.findByToken = function (token) {
     });
 } // Statics creates model methods, NOT instance methods
 
+UserSchema.statics.findByCredentials = function(email,password) {
+    var User = this;
+    return User.findOne({email}).then((user) => { // Find a user by email
+        if (!user) { // If user doesn't exist, reject promise
+            return Promise.reject();
+        }
+        return new Promise((resolve, reject) => { // Return promise based on checking password of existing user...
+            bcrypt.compare(password,user.password, (err,res) => {
+                res ? resolve(user) : reject(err) // Returns user if passwords are identical.
+            });
+        });
+    });
+};
 
 UserSchema.pre('save', function(next) {
     var user = this;
-
     if(user.isModified('password')) { // the .isModified method checks if a property has been changed. The middleware will run everytime anything is changed (like email, for example) but this will only run when the password property has been changed.
         bcrypt.genSalt(10,(err,salt) => {
             bcrypt.hash(user.password,salt,(err,hash) => {

@@ -4,6 +4,7 @@ const _ = require("lodash"); // Working with arrays, objects, strings, etc.
 const { ObjectID } = require("mongodb");
 const { User } = require("./models/user");
 const { Todo } = require("./models/todo");
+const bcrypt = require("bcryptjs");
 
 const config = require("./config/config"); // Get current environment.
 const { mongoose } = require("./db/mongoose"); // Connect to mongoose database
@@ -121,9 +122,26 @@ app.get("/users/me", authenticate, (req,res) => { // From middlewear folder.
     res.send(req.user);
 });
 
+// POST /users/login {email, password}
+
+app.post("/users/login", (req,res) => {
+    var { email, password } = _.pick(req.body, ['email', 'password']);
+    User.findByCredentials(email,password).then((user) => {
+        user.generateAuthToken().then((token) => { // Generate token for logged in user.
+            res.header('x-auth', token).send(user);
+        });
+    }).catch((e) => {
+        res.status(400).send(); // Comes from rejected promise in User.findByCredentials method.
+    });
+});
+
+
 app.listen(port, () => {
     console.log(`Started on port ${port}`);
 });
+
+
+
 
 // Export app for testing purposes.
 module.exports = { app };
