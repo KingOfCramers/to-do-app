@@ -278,4 +278,20 @@ describe("POST /users/login", () => {
                 }).catch((e) =>  done(e));
             });
     });
+
+    it("should reject invalid login", (done) => {
+        supertest(app)
+            .post("/users/login")
+            .send({
+                email: users[1].email,
+                password: "incorrect!"
+            })
+            .expect(400)
+            .expect((res) => {
+                User.findById(users[1]._id).then((user) => {
+                    expect(user.tokens.length).toEqual(0); // No token...
+                }).catch((e) => done(e));
+            })
+            .end(done);
+    });
 });
