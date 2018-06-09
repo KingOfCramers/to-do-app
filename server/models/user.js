@@ -107,7 +107,7 @@ UserSchema.pre('save', function(next) {
     } else {
         next(); // Move on to route.
     }
-})
+});
 
 var User = mongoose.model("User", UserSchema);
 

@@ -16,6 +16,10 @@ const app = express();
 
 app.use(bodyParser.json()); // Middlewear. Sets our headers to JSON.
 
+////////////////
+//// TODOS /////
+////////////////
+
 
 app.post("/todos", (req,res) => {
     // Upon a POST method to /todos Url, get the body of the request, and get the text value. Use that to create a new todo based on our mongo model.
@@ -101,7 +105,10 @@ app.patch("/todos/:id", (req,res) => {
 
 });
 
-//// USERS
+
+////////////////
+//// USERS /////
+////////////////
 
 app.post("/users", (req,res) => {
     var body = _.pick(req.body, ['email', 'password']); // Creates an object using the properties passed into the array.
@@ -117,12 +124,9 @@ app.post("/users", (req,res) => {
     });
 });
 
-// Find associated user w/ token
-app.get("/users/me", authenticate, (req,res) => { // From middlewear folder.
+app.get("/users/me", authenticate, (req,res) => { // // Find associated user w/ token
     res.send(req.user);
 });
-
-// POST /users/login {email, password}
 
 app.post("/users/login", (req,res) => {
     var { email, password } = _.pick(req.body, ['email', 'password']);
@@ -135,13 +139,9 @@ app.post("/users/login", (req,res) => {
     });
 });
 
-
 app.listen(port, () => {
     console.log(`Started on port ${port}`);
 });
-
-
-
 
 // Export app for testing purposes.
 module.exports = { app };
