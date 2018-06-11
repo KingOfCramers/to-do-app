@@ -17,6 +17,7 @@ describe("POST /todos", () => {
     // Using supertest...
     supertest(app)
       .post("/todos") // Post request to the /todos URL
+      .set("x-auth", users[0].tokens[0].token)
       .send({ text: text })
       .expect(200)
       .expect(res => {
@@ -40,6 +41,7 @@ describe("POST /todos", () => {
   it("Should not POST todo with invalid body data", done => {
     supertest(app)
       .post("/todos")
+      .set("x-auth", users[0].tokens[0].token)
       .send({})
       .expect(400)
       .end((err, res) => {
@@ -63,6 +65,7 @@ describe("GET /todos", () => {
   it("Should GET all todos", done => {
     supertest(app)
       .get("/todos")
+      .set("x-auth", users[0].tokens[0].token)
       .expect(200)
       .expect(res => {
         expect(res.body.todos.length).toBe(2);
@@ -76,6 +79,7 @@ describe("GET /todos/:id", () => {
     const invalidId = "thisisaninvalididz";
     supertest(app)
       .get(`/todos/${invalidId}`)
+      .set("x-auth", users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -83,12 +87,14 @@ describe("GET /todos/:id", () => {
     const fakeID = new ObjectID();
     supertest(app)
       .get(`/todos/${fakeID.toHexString()}`)
+      .set("x-auth", users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
   it("Should GET a single todo doc", done => {
     supertest(app)
       .get(`/todos/${todos[0]._id.toHexString()}`) // Must convert object ID to string.
+      .set("x-auth", users[0].tokens[0].token)
       .expect(200)
       .expect(res => {
         expect(res.body.todo.text).toBe(todos[0].text); // Checks todo property against our fake "database" from above.
@@ -102,6 +108,7 @@ describe("DELETE /todos/:id", () => {
     const invalidId = "thisisaninvalididz";
     supertest(app)
       .delete(`/todos/${invalidId}`)
+      .set("x-auth", users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -109,6 +116,7 @@ describe("DELETE /todos/:id", () => {
     const fakeID = new ObjectID();
     supertest(app)
       .delete(`/todos/${fakeID.toHexString()}`)
+      .set("x-auth", users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -116,6 +124,7 @@ describe("DELETE /todos/:id", () => {
     var hexId = todos[1]._id.toHexString();
     supertest(app)
       .delete(`/todos/${hexId}`)
+      .set("x-auth", users[0].tokens[0].token)
       .expect(200)
       .expect(res => {
         expect(res.body.todo._id).toBe(hexId);
@@ -139,6 +148,7 @@ describe("PATCH /todos/:id", () => {
     const invalidId = "thisisaninvalididz";
     supertest(app)
       .patch(`/todos/${invalidId}`)
+      .set("x-auth", users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -146,6 +156,7 @@ describe("PATCH /todos/:id", () => {
     const fakeID = new ObjectID();
     supertest(app)
       .patch(`/todos/${fakeID.toHexString()}`)
+      .set("x-auth", users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -154,6 +165,7 @@ describe("PATCH /todos/:id", () => {
     var newText = "New Text here";
     supertest(app)
       .patch(`/todos/${hexId}`)
+      .set("x-auth", users[0].tokens[0].token)
       .send({
         completed: true,
         text: newText
@@ -173,6 +185,7 @@ describe("PATCH /todos/:id", () => {
     var hexId = todos[1]._id.toHexString();
     supertest(app)
       .patch(`/todos/${hexId}`)
+      .set("x-auth", users[0].tokens[0].token)
       .send({
         completed: false
       })
@@ -282,7 +295,7 @@ describe("POST /users/login", () => {
         }
         User.findById(users[1]._id)
           .then(user => {
-            expect(user.tokens[0]).toInclude({
+            expect(user.tokens[1]).toInclude({
               access: "auth",
               token: res.headers["x-auth"]
             });
@@ -303,7 +316,7 @@ describe("POST /users/login", () => {
       .expect(res => {
         User.findById(users[1]._id)
           .then(user => {
-            expect(user.tokens.length).toEqual(0); // No token...
+            expect(user.tokens.length).toEqual(1); // No token...
           })
           .catch(e => done(e));
       })

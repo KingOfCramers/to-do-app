@@ -20,10 +20,11 @@ app.use(bodyParser.json()); // Middlewear. Sets our headers to JSON.
 //// TODOS /////
 ////////////////
 
-app.post("/todos", (req, res) => {
+app.post("/todos", authenticate, (req, res) => {
   // Upon a POST method to /todos Url, get the body of the request, and get the text value. Use that to create a new todo based on our mongo model.
   const todo = new Todo({
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id
   });
 
   // Call the save method on our mongoose model to add it to the database.
@@ -37,7 +38,7 @@ app.post("/todos", (req, res) => {
   );
 });
 
-app.get("/todos", (req, res) => {
+app.get("/todos", authenticate, (req, res) => {
   Todo.find().then(
     todos => {
       res.send({
@@ -51,7 +52,7 @@ app.get("/todos", (req, res) => {
   ); // Returns all Todos.
 });
 
-app.get("/todos/:todo", (req, res) => {
+app.get("/todos/:todo", authenticate, (req, res) => {
   // The id property here is passed under req.params.id
   let id = req.params.todo;
   if (!ObjectID.isValid(id)) {
@@ -74,7 +75,7 @@ app.get("/todos/:todo", (req, res) => {
     });
 });
 
-app.delete("/todos/:todo", (req, res) => {
+app.delete("/todos/:todo", authenticate, (req, res) => {
   let id = req.params.todo;
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
@@ -91,7 +92,7 @@ app.delete("/todos/:todo", (req, res) => {
     });
 });
 
-app.patch("/todos/:id", (req, res) => {
+app.patch("/todos/:id", authenticate, (req, res) => {
   var id = req.params.id;
   var body = _.pick(req.body, ["text", "completed"]); // Creates an object using the properties passed into the array. We don't want user to be able to update whatever they want.
   if (!ObjectID.isValid(id)) {
