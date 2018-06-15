@@ -52,14 +52,17 @@ app.get("/todos", authenticate, (req, res) => {
   ); // Returns all Todos.
 });
 
-app.get("/todos/:todo", authenticate, (req, res) => {
+app.get("/todos/:id", authenticate, (req, res) => {
   // The id property here is passed under req.params.id
-  let id = req.params.todo;
+  let id = req.params.id;
   if (!ObjectID.isValid(id)) {
     return res.status(404).send(); // Pass nothing back.
   }
 
-  Todo.findById(id)
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id // set in our authenticate function
+  })
     .then(todo => {
       if (!todo) {
         return res.status(404).send("Not found."); // Pass nothing back.
@@ -75,12 +78,18 @@ app.get("/todos/:todo", authenticate, (req, res) => {
     });
 });
 
-app.delete("/todos/:todo", authenticate, (req, res) => {
-  let id = req.params.todo;
+
+app.delete("/todos/:id", authenticate, (req, res) => {
+  var id = req.params.id;
+
   if (!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
-  Todo.findByIdAndRemove(id)
+
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  })
     .then(todo => {
       if (!todo) {
         return res.status(404).send();
@@ -107,7 +116,7 @@ app.patch("/todos/:id", authenticate, (req, res) => {
     body.completedAt = null;
   }
   // We've already generated the body object. New, true returns the new todo.
-  Todo.findByIdAndUpdate(id, { $set: body }, { new: true })
+  Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, { $set: body }, { new: true })
     .then(todo => {
       if (!todo) {
         return res.status(404).send();
