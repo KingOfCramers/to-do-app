@@ -54,7 +54,7 @@ UserSchema.methods.toJSON = function() {
 UserSchema.methods.generateAuthToken = function () { // Where our instance methods live. They have access to the original document.
     var user = this; // This document.
     var access = 'auth';
-    var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString(); // salt it!
+    var token = jwt.sign({_id: user._id.toHexString(), access}, process.env.JWT_SECRET).toString(); // salt it!
 
     // user.tokens.push({access, token});
     user.tokens = user.tokens.concat([{access, token}]); // Push is inconsistent across versions.
@@ -80,7 +80,7 @@ UserSchema.statics.findByToken = function (token) {
     var decoded;
 
     try {
-        decoded = jwt.verify(token, 'abc123'); // Will send to catch block if this fails, the rest will not run.
+        decoded = jwt.verify(token, process.env.JWT_SECRET); // Will send to catch block if this fails, the rest will not run.
     } catch (e) {
         return Promise.reject();// This promise will be returned instead of our token.
     }
